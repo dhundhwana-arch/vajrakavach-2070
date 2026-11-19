@@ -1,0 +1,249 @@
+import json
+import mimetypes
+import re
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any, Dict, Optional
+from urllib.parse import urlparse
+
+from backend import config
+from backend.core.audit import list_audit_logs, verify_audit_chain
+from backend.core.db import get_connection, init_db
+from backend.core.security import AuthError, verify_token
+from backend.modules import assets, auth, compliance, evidence, risks, soc, tools
+
+
+class VajraHandler(BaseHTTPRequestHandler):
+    db_path: Optional[Path] = None
+
+    def log_message(self, format: str, *args: Any) -> None:
+        # Clean concise server log
+        print(f"[VAJRAKAVACH] {self.address_string()} - {format % args}")
+
+    def _send_json(self, payload: Any, status: int = 200) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_static(self, rel_path: str) -> None:
+        clean_rel = "index.html" if rel_path in {"", "/"} else rel_path.lstrip("/")
+        target = (config.FRONTEND_DIR / clean_rel).resolve()
+        if not str(target).startswith(str(config.FRONTEND_DIR.resolve())) or not target.is_file():
+            self._send_json({"error": "Not found"}, 404)
+            return
+        mime, _ = mimetypes.guess_type(str(target))
+        content = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", f"{mime or 'application/octet-stream'}; charset=utf-8")
+        self.send_header("Content-Length", str(len(content)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(content)
+
+    def _read_json(self) -> Dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length > config.MAX_BODY_BYTES:
+            raise ValueError("Request payload exceeds 1 MB limit.")
+        if length == 0:
+            return {}
+        raw = self.rfile.read(length).decode("utf-8")
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Invalid JSON request body.") from exc
+        if not isinstance(data, dict):
+            raise ValueError("JSON body must be an object.")
+        return data
+
+    def _authenticate(self) -> Dict[str, Any]:
+        header = self.headers.get("Authorization", "")
+        if not header.startswith("Bearer "):
+            raise AuthError("Missing Bearer token.", 401)
+        return verify_token(header[7:].strip())
+
+    def _handle_request(self, method: str) -> None:
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if not path.startswith("/api/"):
+            if method == "GET":
+                self._send_static(path)
+            else:
+                self._send_json({"error": "Method not allowed"}, 405)
+            return
+
+        conn = get_connection(self.db_path)
+        try:
+            # --- Public Health & Auth Endpoints ---
+            if path == "/api/v1/health" and method == "GET":
+                self._send_json({
+                    "status": "healthy",
+                    "app": config.APP_NAME,
+                    "version": config.APP_VERSION,
+                    "founder": config.FOUNDER,
+                    "identity": config.PRODUCT_IDENTITY,
+                })
+                return
+
+            if path == "/api/v1/auth/register-tenant" and method == "POST":
+                result = auth.register_tenant(conn, self._read_json())
+                self._send_json(result, 201)
+                return
+
+            if path == "/api/v1/auth/login" and method == "POST":
+                result = auth.login_user(conn, self._read_json())
+                self._send_json(result, 200)
+                return
+
+            # --- Authenticated Endpoints ---
+            actor = self._authenticate()
+
+            if path == "/api/v1/auth/users" and method == "POST":
+                self._send_json(auth.create_tenant_user(conn, actor, self._read_json()), 201)
+                return
+            if path == "/api/v1/auth/mfa/setup" and method == "POST":
+                self._send_json(auth.setup_mfa(conn, actor), 200)
+                return
+            if path == "/api/v1/auth/mfa/enable" and method == "POST":
+                body = self._read_json()
+                self._send_json(auth.enable_mfa(conn, actor, body.get("totp_code", "")), 200)
+                return
+
+            if path == "/api/v1/dashboard/summary" and method == "GET":
+                self._send_json(compliance.dashboard_summary(conn, actor), 200)
+                return
+
+            if path == "/api/v1/assets":
+                if method == "GET":
+                    self._send_json({"items": assets.list_assets(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(assets.create_asset(conn, actor, self._read_json()), 201)
+                    return
+
+            if path == "/api/v1/risks":
+                if method == "GET":
+                    self._send_json({"items": risks.list_risks(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(risks.create_risk(conn, actor, self._read_json()), 201)
+                    return
+
+            if path == "/api/v1/soc/events":
+                if method == "GET":
+                    self._send_json({"items": soc.list_events(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(soc.ingest_event(conn, actor, self._read_json()), 201)
+                    return
+
+            if path == "/api/v1/soc/cases" and method == "GET":
+                self._send_json({"items": soc.list_cases(conn, actor)}, 200)
+                return
+
+            m_case = re.fullmatch(r"/api/v1/soc/cases/(\d+)", path)
+            if m_case and method == "PATCH":
+                self._send_json(soc.update_case_status(conn, actor, int(m_case.group(1)), self._read_json()), 200)
+                return
+
+            if path == "/api/v1/evidence":
+                if method == "GET":
+                    self._send_json({"items": evidence.list_evidence(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(evidence.intake_evidence(conn, actor, self._read_json()), 201)
+                    return
+
+            m_ev = re.fullmatch(r"/api/v1/evidence/(\d+)/verify", path)
+            if m_ev and method == "GET":
+                self._send_json(evidence.verify_evidence(conn, actor, int(m_ev.group(1))), 200)
+                return
+
+            if path == "/api/v1/tools":
+                if method == "GET":
+                    self._send_json({"items": tools.list_tools(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(tools.register_tool(conn, actor, self._read_json()), 201)
+                    return
+
+            m_tool = re.fullmatch(r"/api/v1/tools/(\d+)/status", path)
+            if m_tool and method == "PATCH":
+                body = self._read_json()
+                self._send_json(tools.update_tool_status(conn, actor, int(m_tool.group(1)), body.get("approval_status", "")), 200)
+                return
+
+            if path == "/api/v1/compliance" and method == "GET":
+                self._send_json({"items": compliance.list_controls(conn, actor)}, 200)
+                return
+
+            m_ctrl = re.fullmatch(r"/api/v1/compliance/(\d+)", path)
+            if m_ctrl and method == "PATCH":
+                self._send_json(compliance.update_control(conn, actor, int(m_ctrl.group(1)), self._read_json()), 200)
+                return
+
+            if path == "/api/v1/audit" and method == "GET":
+                self._send_json({"items": list_audit_logs(conn, actor["tid"])}, 200)
+                return
+
+            if path == "/api/v1/audit/verify" and method == "GET":
+                self._send_json(verify_audit_chain(conn, actor["tid"]), 200)
+                return
+
+            self._send_json({"error": "Endpoint not found"}, 404)
+
+        except AuthError as exc:
+            self._send_json({"error": str(exc)}, exc.status_code)
+        except LookupError as exc:
+            self._send_json({"error": str(exc)}, 404)
+        except ValueError as exc:
+            self._send_json({"error": str(exc)}, 400)
+        except Exception as exc:
+            self._send_json({"error": f"Internal server error: {type(exc).__name__}"}, 500)
+        finally:
+            conn.close()
+
+    def do_GET(self) -> None:
+        self._handle_request("GET")
+
+    def do_POST(self) -> None:
+        self._handle_request("POST")
+
+    def do_PATCH(self) -> None:
+        self._handle_request("PATCH")
+
+
+def create_server(host: str = config.HOST, port: int = config.PORT, db_path: Optional[Path] = None) -> ThreadingHTTPServer:
+    init_db(db_path)
+
+    class BoundHandler(VajraHandler):
+        pass
+
+    BoundHandler.db_path = db_path
+    return ThreadingHTTPServer((host, port), BoundHandler)
+
+
+def main() -> None:
+    server = create_server(config.HOST, config.PORT, config.DB_PATH)
+    print(f"============================================================")
+    print(f"  {config.APP_NAME} v{config.APP_VERSION} — {config.PRODUCT_IDENTITY}")
+    print(f"  Running on: http://{config.HOST}:{config.PORT}")
+    print(f"  Database:   {config.DB_PATH}")
+    print(f"============================================================")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down VAJRAKAVACH 2070 safely...")
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()

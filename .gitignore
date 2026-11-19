@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Databases & Local Runtime State
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# Secrets & Environment Variables (NEVER COMMIT SECRETS)
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+
+# OS & Editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

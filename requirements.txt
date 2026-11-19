@@ -1,0 +1,8 @@
+# VAJRAKAVACH 2070 Phase 1-2 Core MVP runs on 100% Python 3.10+ Standard Library
+# (sqlite3, http.server, hashlib, hmac, secrets, json, unittest) so it works
+# natively on Android Termux, Linux, macOS, and Windows with ZERO native build issues.
+#
+# Optional packages for future Phase 3 PostgreSQL / FastAPI production scaling:
+# fastapi>=0.115.0
+# uvicorn[standard]>=0.30.0
+# psycopg[binary]>=3.2.0

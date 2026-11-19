@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: VAJRAKAVACH 2070 Core MVP API
+  version: 0.2.0
+  description: Defensive, Multi-Tenant Cybersecurity & Digital Defense Ecosystem API. Founder & Developer: Divyesh Bambhaniya.
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check and runtime metadata
+      responses:
+        "200":
+          description: Service healthy
+  /api/v1/auth/register-tenant:
+    post:
+      summary: Register a new isolated tenant and initial Organization Admin
+      responses:
+        "201":
+          description: Tenant and admin created
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate user (supports optional TOTP MFA)
+      responses:
+        "200":
+          description: Signed Bearer token returned
+  /api/v1/auth/mfa/setup:
+    post:
+      summary: Generate RFC 6238 TOTP secret for authenticated user
+      responses:
+        "200":
+          description: TOTP secret generated
+  /api/v1/auth/mfa/enable:
+    post:
+      summary: Verify TOTP code and enable MFA
+      responses:
+        "200":
+          description: MFA enabled
+  /api/v1/dashboard/summary:
+    get:
+      summary: Live tenant-scoped KPI summary and audit integrity status
+      responses:
+        "200":
+          description: Dashboard summary returned
+  /api/v1/assets:
+    get:
+      summary: List tenant assets
+      responses:
+        "200":
+          description: Asset list
+    post:
+      summary: Register a new digital asset
+      responses:
+        "201":
+          description: Asset created
+  /api/v1/risks:
+    get:
+      summary: List tenant risks
+      responses:
+        "200":
+          description: Risk list
+    post:
+      summary: Create a scored risk entry
+      responses:
+        "201":
+          description: Risk created
+  /api/v1/soc/events:
+    get:
+      summary: List security events
+      responses:
+        "200":
+          description: Event list
+    post:
+      summary: Ingest security event with automatic alert correlation
+      responses:
+        "201":
+          description: Event ingested
+  /api/v1/soc/cases:
+    get:
+      summary: List incident cases
+      responses:
+        "200":
+          description: Case list
+    post:
+      summary: Create or approve incident case
+      responses:
+        "201":
+          description: Case created
+  /api/v1/evidence:
+    get:
+      summary: List forensic evidence items
+      responses:
+        "200":
+          description: Evidence list
+    post:
+      summary: Intake evidence with automatic SHA-256 and SHA-512 hashing
+      responses:
+        "201":
+          description: Evidence sealed
+  /api/v1/evidence/{id}/verify:
+    get:
+      summary: Cryptographically verify evidence integrity and return Chain of Custody
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Integrity verification result
+  /api/v1/tools:
+    get:
+      summary: List verified cybersecurity tool registry
+      responses:
+        "200":
+          description: Tool catalog
+    post:
+      summary: Register a new tool into research catalog
+      responses:
+        "201":
+          description: Tool cataloged
+  /api/v1/compliance:
+    get:
+      summary: List compliance controls across NIST CSF 2.0, CERT-In, RBI 2026, DPDP 2025
+      responses:
+        "200":
+          description: Compliance controls
+  /api/v1/audit:
+    get:
+      summary: List tamper-evident audit logs for tenant
+      responses:
+        "200":
+          description: Audit log entries
+  /api/v1/audit/verify:
+    get:
+      summary: Verify SHA-256 hash chain across all tenant audit records
+      responses:
+        "200":
+          description: Chain integrity verification result

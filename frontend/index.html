@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VAJRAKAVACH 2070 — Global Security Command Center</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="shield">🛡️</span>
+      <div>
+        <h1>VAJRAKAVACH 2070 <span class="badge">v0.2.0 MVP</span></h1>
+        <p class="sub" data-i18n="subtitle">Global Cybersecurity &amp; Digital Defense Intelligence Ecosystem</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="langToggle" class="btn btn-outline">English / ગુજરાતી</button>
+      <div id="userChip" class="user-chip hidden"></div>
+      <button id="logoutBtn" class="btn btn-danger hidden" data-i18n="logout">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Auth Gate -->
+    <section id="authSection" class="auth-grid">
+      <div class="card">
+        <h2 data-i18n="loginTitle">🔐 Sign In (Tenant Portal)</h2>
+        <p class="muted" data-i18n="loginDesc">Authenticate with your isolated organization account.</p>
+        <form id="loginForm" class="form">
+          <label>Email <input type="email" name="email" required placeholder="admin@org.gov.in" /></label>
+          <label>Password <input type="password" name="password" required minlength="8" placeholder="••••••••" /></label>
+          <label>MFA TOTP Code (if enabled) <input type="text" name="totp_code" maxlength="6" placeholder="123456" /></label>
+          <button type="submit" class="btn btn-primary" data-i18n="loginBtn">Sign In</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="registerTitle">🏢 Register New Organization Tenant</h2>
+        <p class="muted" data-i18n="registerDesc">Creates an isolated tenant with PBKDF2 auth, verified tool catalog, and NIST/CERT-In/RBI/DPDP controls.</p>
+        <form id="registerForm" class="form">
+          <label>Organization / Tenant Name <input type="text" name="tenant_name" required placeholder="Bharat Cyber Defense Lab" /></label>
+          <label>Sector
+            <select name="sector">
+              <option value="government">Government &amp; Public Sector</option>
+              <option value="banking">Banking &amp; Financial Institution</option>
+              <option value="enterprise" selected>Enterprise / Technology</option>
+              <option value="research">Cybersecurity Research Lab</option>
+            </select>
+          </label>
+          <label>Admin Full Name <input type="text" name="full_name" required placeholder="Divyesh Bambhaniya" /></label>
+          <label>Admin Email <input type="email" name="email" required placeholder="founder@vajrakavach.in" /></label>
+          <label>Password (min 8 chars) <input type="password" name="password" required minlength="8" placeholder="StrongPass@2026" /></label>
+          <button type="submit" class="btn btn-accent" data-i18n="registerBtn">Create Isolated Tenant</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Authenticated Workspace -->
+    <section id="workspaceSection" class="hidden">
+      <nav class="tabs" id="navTabs">
+        <button class="tab active" data-tab="overview" data-i18n="tabOverview">Command Center</button>
+        <button class="tab" data-tab="assets" data-i18n="tabAssets">Assets</button>
+        <button class="tab" data-tab="risks" data-i18n="tabRisks">Risk Register</button>
+        <button class="tab" data-tab="soc" data-i18n="tabSoc">SOC &amp; Cases</button>
+        <button class="tab" data-tab="evidence" data-i18n="tabEvidence">Digital Forensics</button>
+        <button class="tab" data-tab="tools" data-i18n="tabTools">Tool Registry</button>
+        <button class="tab" data-tab="compliance" data-i18n="tabCompliance">Compliance &amp; Audit</button>
+      </nav>
+
+      <div id="statusToast" class="toast hidden"></div>
+
+      <!-- 1. Overview -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="card">
+          <h3 data-i18n="auditBannerTitle">🔒 Cryptographic Audit Chain &amp; Legal Boundary</h3>
+          <p id="auditStatusText" class="muted">Checking SHA-256 audit chain...</p>
+          <p class="small muted">Lawful Defensive Mode Active — All mutations are tenant-isolated, RBAC-checked, and hash-chained.</p>
+        </div>
+      </div>
+
+      <!-- 2. Assets -->
+      <div class="tab-panel" id="tab-assets">
+        <div class="split">
+          <div class="card">
+            <h3>➕ Register Asset</h3>
+            <form id="assetForm" class="form">
+              <label>Asset Name <input name="name" required placeholder="Core Banking API Gateway" /></label>
+              <label>Type
+                <select name="asset_type">
+                  <option value="server">Server</option>
+                  <option value="api">API</option>
+                  <option value="cloud">Cloud</option>
+                  <option value="database">Database</option>
+                  <option value="endpoint">Endpoint</option>
+                  <option value="domain">Domain</option>
+                  <option value="ai_model">AI Model</option>
+                  <option value="network">Network</option>
+                </select>
+              </label>
+              <label>Criticality
+                <select name="criticality">
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>IP / URI <input name="ip_or_uri" placeholder="https://api.internal.local" /></label>
+              <button type="submit" class="btn btn-primary">Save Asset</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>📦 Tenant Asset Inventory</h3>
+            <div class="table-wrap"><table id="assetsTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Risks -->
+      <div class="tab-panel" id="tab-risks">
+        <div class="split">
+          <div class="card">
+            <h3>➕ Log Security Risk</h3>
+            <form id="riskForm" class="form">
+              <label>Risk Title <input name="title" required placeholder="Missing API Rate Limiting" /></label>
+              <label>Likelihood (1–5) <input type="number" name="likelihood" min="1" max="5" value="4" required /></label>
+              <label>Impact (1–5) <input type="number" name="impact" min="1" max="5" value="4" required /></label>
+              <label>Mitigation Plan <textarea name="mitigation_plan" rows="2" placeholder="Enable token-bucket rate limiting at gateway"></textarea></label>
+              <button type="submit" class="btn btn-primary">Add Risk</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>⚠️ Risk Register (Auto-Scored)</h3>
+            <div class="table-wrap"><table id="risksTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. SOC -->
+      <div class="tab-panel" id="tab-soc">
+        <div class="split">
+          <div class="card">
+            <h3>📡 Ingest Security Event</h3>
+            <form id="eventForm" class="form">
+              <label>Source <input name="source" value="wazuh-agent" required /></label>
+              <label>Event Type <input name="event_type" value="auth_anomaly" required /></label>
+              <label>Severity
+                <select name="severity">
+                  <option value="critical">Critical (Auto-opens Case)</option>
+                  <option value="high">High (Auto-opens Case)</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>MITRE ATT&amp;CK Tactic <input name="mitre_tactic" value="Credential Access" /></label>
+              <label>Summary <textarea name="summary" rows="2" required placeholder="Repeated unauthorized login attempts detected"></textarea></label>
+              <button type="submit" class="btn btn-primary">Ingest Event</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🚨 Incident Cases (Human Approval Required)</h3>
+            <div class="table-wrap"><table id="casesTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Evidence -->
+      <div class="tab-panel" id="tab-evidence">
+        <div class="split">
+          <div class="card">
+            <h3>🧬 Seal Digital Evidence (SHA-256 / SHA-512)</h3>
+            <form id="evidenceForm" class="form">
+              <label>Evidence Title <input name="title" required placeholder="Firewall Drop Log Snapshot" /></label>
+              <label>Authorized Source <input name="source" required placeholder="Edge Firewall Cluster A" /></label>
+              <label>Acquisition Method <input name="acquisition_method" value="authorized_read_only_export" required /></label>
+              <label>Evidence Content / Artifact Text <textarea name="content_payload" rows="3" required placeholder="Paste verified log snippet or artifact metadata..."></textarea></label>
+              <button type="submit" class="btn btn-accent">Seal &amp; Hash Evidence</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🔎 Sealed Evidence &amp; Integrity Verifier</h3>
+            <div class="table-wrap"><table id="evidenceTable"></table></div>
+            <pre id="evidenceVerifyBox" class="code-box hidden"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Tools -->
+      <div class="tab-panel" id="tab-tools">
+        <div class="card">
+          <h3>🧰 Universal Verified Cybersecurity Tool Registry</h3>
+          <p class="muted">Policy: Catalog entry does NOT grant execution permission. Every tool requires Source, License, Security, and Sandbox approval.</p>
+          <div class="table-wrap"><table id="toolsTable"></table></div>
+        </div>
+      </div>
+
+      <!-- 7. Compliance & Audit -->
+      <div class="tab-panel" id="tab-compliance">
+        <div class="card">
+          <h3>📋 Standards &amp; Indian Regulatory Readiness (NIST CSF 2.0, CERT-In, RBI 2026, DPDP Rules 2025)</h3>
+          <div class="table-wrap"><table id="complianceTable"></table></div>
+        </div>
+        <div class="card">
+          <div class="row-between">
+            <h3>⛓️ Immutable Hash-Chained Audit Log</h3>
+            <button id="verifyAuditBtn" class="btn btn-accent">Verify SHA-256 Chain Now</button>
+          </div>
+          <div class="table-wrap"><table id="auditTable"></table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <strong>VAJRAKAVACH 2070 (વજ્રકવચ)</strong> — Founder &amp; Project Developer: <strong>Divyesh Bambhaniya</strong> | Product Identity: <strong>Developer by Divyesh Bambhaniya</strong>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
