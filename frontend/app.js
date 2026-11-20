@@ -20,6 +20,10 @@ const I18N = {
     tabAisec: "AI સુરક્ષા",
     tabIntel: "થ્રેટ ઇન્ટેલ",
     tabSbom: "SBOM સપ્લાય ચેઇન",
+    tabBanking: "બેંકિંગ ફ્રોડ",
+    tabGov: "ગવર્નમેન્ટ / CERT-In",
+    tabMalware: "માલવેર લેબ",
+    tabGraph: "નોલેજ ગ્રાફ",
   },
   en: {
     subtitle: "Global Cybersecurity & Digital Defense Intelligence Ecosystem",
@@ -42,6 +46,10 @@ const I18N = {
     tabAisec: "AI Security",
     tabIntel: "Threat Intel",
     tabSbom: "Supply Chain SBOM",
+    tabBanking: "Banking Fraud",
+    tabGov: "Gov / CERT-In",
+    tabMalware: "Malware Lab",
+    tabGraph: "Knowledge Graph",
   },
 };
 
@@ -199,6 +207,7 @@ function renderAppState() {
     chip.textContent = `${currentUser.tenant_name || "Tenant"} | ${currentUser.email} (${currentUser.role})`;
     loadAllData();
     loadPhase3Data();
+    loadPhase4Data();
   }
 }
 
@@ -371,3 +380,56 @@ document.getElementById("sbomForm").addEventListener("submit", async (e) => {
     loadPhase3Data();
   } catch (err) { showToast(err.message, true); }
 });
+
+
+async function loadPhase4Data() {
+  try {
+    const [bankRes, certRes, malRes, graphRes] = await Promise.all([
+      api("/api/v1/banking/transactions"),
+      api("/api/v1/gov/certin-reports"),
+      api("/api/v1/malware-lab/analyze"),
+      api("/api/v1/graph/security"),
+    ]);
+    document.getElementById("bankingTable").innerHTML =
+      "<tr><th>ID</th><th>Account</th><th>Amount (INR)</th><th>Channel</th><th>Score</th><th>Risk</th></tr>" +
+      bankRes.items.map((b) => `<tr><td>${b.id}</td><td>${esc(b.account_alias)}</td><td>₹${b.amount_inr}</td><td>${esc(b.channel)}</td><td>${b.anomaly_score}/100</td><td><span class="pill pill-${esc(b.risk_level)}">${esc(b.risk_level)}</span></td></tr>`).join("");
+    document.getElementById("certinTable").innerHTML =
+      "<tr><th>ID</th><th>Category</th><th>Service</th><th>6h Deadline (UTC)</th><th>SLA</th></tr>" +
+      certRes.items.map((c) => `<tr><td>${c.id}</td><td>${esc(c.incident_category)}</td><td>${esc(c.affected_service)}</td><td><code>${esc(c.deadline_utc)}</code></td><td><span class="pill pill-${c.sla_status === "on_track" ? "low" : "critical"}">${esc(c.sla_status)}</span></td></tr>`).join("");
+    document.getElementById("malwareTable").innerHTML =
+      "<tr><th>ID</th><th>Sample</th><th>Entropy</th><th>SHA-256</th><th>Risk</th></tr>" +
+      malRes.items.map((m) => `<tr><td>${m.id}</td><td>${esc(m.sample_name)}</td><td>${m.shannon_entropy}</td><td><code>${esc(m.sha256_hash.slice(0, 14))}...</code></td><td><span class="pill pill-${esc(m.risk_level)}">${esc(m.risk_level)}</span></td></tr>`).join("");
+    document.getElementById("graphOutputBox").textContent = JSON.stringify(graphRes, null, 2);
+  } catch (err) { showToast(err.message, true); }
+}
+
+document.getElementById("bankingForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/banking/transactions", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    showToast(`Transaction #${res.id} scored ${res.anomaly_score}/100 (${res.risk_level}).`);
+    loadPhase4Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("certinForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/gov/certin-reports", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`CERT-In 6h SLA Draft #${res.id} created (Deadline: ${res.deadline_utc}).`);
+    loadPhase4Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("malwareForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/malware-lab/analyze", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`Static Analysis #${res.id}: Entropy=${res.shannon_entropy}, Risk=${res.risk_level}.`);
+    loadPhase4Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("refreshGraphBtn").addEventListener("click", loadPhase4Data);

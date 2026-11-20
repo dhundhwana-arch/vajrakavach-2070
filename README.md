@@ -4,7 +4,7 @@
 - **Founder:** Divyesh Bambhaniya
 - **Project Developer:** Divyesh Bambhaniya
 - **Product Identity:** Developer by Divyesh Bambhaniya
-- **Current Release:** `v0.3.0` — Phase 1–3 Core Security Platform (Modular Monolith)
+- **Current Release:** `v0.4.0` — Phase 1–4 Enterprise, Banking & Gov Security Platform
 - **Long-Term Vision:** 2026–2070 Phased Research & Engineering Roadmap
 
 ---
@@ -56,6 +56,15 @@ Rather than faking all 20 future divisions with mock screens, this release imple
     - MITRE ATT&CK-tagged IOC database + live correlation engine against tenant SOC events and assets
 13. **Software Supply Chain & SBOM Analyzer (`backend/modules/sbom.py`)** *(New in v0.3.0)*
     - Parses Python `requirements.txt` and Node.js `package.json` into CycloneDX-Lite SBOM records and flags unpinned dependencies
+
+14. **Banking Fraud & Transaction Anomaly Engine (`backend/modules/banking_fraud.py`)** *(New in v0.4.0)*
+    - Explainable RBI-aligned UPI/NEFT/RTGS/IMPS/CARD anomaly scoring with mandatory human investigator review
+15. **Government CERT-In 6-Hour Incident SLA Drafter (`backend/modules/gov_certin.py`)** *(New in v0.4.0)*
+    - Automatic 6-hour UTC deadline & SLA status calculator for CERT-In reportable cyber incidents
+16. **Defensive Static Malware & YARA-Lite Lab (`backend/modules/malware_lab.py`)** *(New in v0.4.0)*
+    - Zero-execution static MD5/SHA-1/SHA-256 hashing, Shannon entropy computation, and defensive YARA-Lite matching
+17. **Security Knowledge Graph Engine (`backend/modules/knowledge_graph.py`)** *(New in v0.4.0)*
+    - Real-time tenant-isolated relationship graph linking Assets, Risks, SOC Events, Cases, Evidence, and Threat IOCs
 
 ## 🚀 Quickstart (Termux / Linux / macOS / Windows)
 

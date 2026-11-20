@@ -11,7 +11,7 @@ from backend import config
 from backend.core.audit import list_audit_logs, verify_audit_chain
 from backend.core.db import get_connection, init_db
 from backend.core.security import AuthError, verify_token
-from backend.modules import ai_sec, assets, auth, cloud_sec, compliance, evidence, risks, sbom, soc, threat_intel, tools, web_api_sec
+from backend.modules import ai_sec, assets, auth, banking_fraud, cloud_sec, compliance, evidence, gov_certin, knowledge_graph, malware_lab, risks, sbom, soc, threat_intel, tools, web_api_sec
 
 
 class VajraHandler(BaseHTTPRequestHandler):
@@ -237,6 +237,32 @@ class VajraHandler(BaseHTTPRequestHandler):
                 if method == "POST":
                     self._send_json(sbom.analyze_sbom(conn, actor, self._read_json()), 201)
                     return
+
+            # --- Phase 4: Banking Fraud, Gov CERT-In 6h SLA, Defensive Malware Lab, Security Knowledge Graph ---
+            if path == "/api/v1/banking/transactions":
+                if method == "GET":
+                    self._send_json({"items": banking_fraud.list_transactions(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(banking_fraud.analyze_transaction(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/gov/certin-reports":
+                if method == "GET":
+                    self._send_json({"items": gov_certin.list_certin_reports(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(gov_certin.create_certin_report(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/malware-lab/analyze":
+                if method == "GET":
+                    self._send_json({"items": malware_lab.list_analyses(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(malware_lab.analyze_static_sample(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/graph/security" and method == "GET":
+                self._send_json(knowledge_graph.build_security_graph(conn, actor), 200)
+                return
 
             self._send_json({"error": "Endpoint not found"}, 404)
 

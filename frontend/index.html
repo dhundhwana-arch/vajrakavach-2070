@@ -11,7 +11,7 @@
     <div class="brand">
       <span class="shield">🛡️</span>
       <div>
-        <h1>VAJRAKAVACH 2070 <span class="badge">v0.3.0 Phase 3</span></h1>
+        <h1>VAJRAKAVACH 2070 <span class="badge">v0.4.0 Phase 4</span></h1>
         <p class="sub" data-i18n="subtitle">Global Cybersecurity &amp; Digital Defense Intelligence Ecosystem</p>
       </div>
     </div>
@@ -71,6 +71,10 @@
         <button class="tab" data-tab="aisec" data-i18n="tabAisec">AI Security</button>
         <button class="tab" data-tab="intel" data-i18n="tabIntel">Threat Intel</button>
         <button class="tab" data-tab="sbom" data-i18n="tabSbom">Supply Chain SBOM</button>
+        <button class="tab" data-tab="banking" data-i18n="tabBanking">Banking Fraud</button>
+        <button class="tab" data-tab="gov" data-i18n="tabGov">Gov / CERT-In</button>
+        <button class="tab" data-tab="malware" data-i18n="tabMalware">Malware Lab</button>
+        <button class="tab" data-tab="graph" data-i18n="tabGraph">Knowledge Graph</button>
       </nav>
 
       <div id="statusToast" class="toast hidden"></div>
@@ -312,6 +316,91 @@
             <h3>📑 SBOM Records</h3>
             <div class="table-wrap"><table id="sbomTable"></table></div>
           </div>
+        </div>
+      </div>
+
+      <!-- 12. Banking Fraud & Anomaly Analytics -->
+      <div class="tab-panel" id="tab-banking">
+        <div class="split">
+          <div class="card">
+            <h3>🏦 Banking Transaction Anomaly Check (RBI Aligned)</h3>
+            <form id="bankingForm" class="form">
+              <label>Account Alias <input name="account_alias" required placeholder="ACCT-IND-8841" /></label>
+              <label>Amount (INR) <input type="number" name="amount_inr" required min="1" value="98000" /></label>
+              <label>Channel
+                <select name="channel">
+                  <option value="UPI">UPI</option>
+                  <option value="IMPS">IMPS</option>
+                  <option value="NEFT">NEFT</option>
+                  <option value="RTGS">RTGS</option>
+                  <option value="CARD">CARD</option>
+                </select>
+              </label>
+              <label>Counterparty <input name="counterparty" placeholder="MERCHANT-042" /></label>
+              <button type="submit" class="btn btn-primary">Analyze Transaction (Advisory)</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>💳 Analyzed Transactions (Human Investigator Review Required)</h3>
+            <div class="table-wrap"><table id="bankingTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13. Government CERT-In 6-Hour Incident SLA -->
+      <div class="tab-panel" id="tab-gov">
+        <div class="split">
+          <div class="card">
+            <h3>🏛️ CERT-In 6-Hour Incident Report Drafter</h3>
+            <form id="certinForm" class="form">
+              <label>Incident Category
+                <select name="incident_category">
+                  <option value="unauthorized_access">Unauthorized Access</option>
+                  <option value="compromise_critical_system">Compromise of Critical System</option>
+                  <option value="ransomware_malware">Ransomware / Malware</option>
+                  <option value="data_breach">Data Breach</option>
+                  <option value="targeted_scanning">Targeted Scanning</option>
+                </select>
+              </label>
+              <label>Affected Service <input name="affected_service" required placeholder="State Citizen Portal" /></label>
+              <label>Summary <textarea name="summary" rows="3" required placeholder="Describe verified incident scope and containment status..."></textarea></label>
+              <button type="submit" class="btn btn-accent">Generate 6-Hour SLA Draft</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>⏱️ CERT-In SLA Reports</h3>
+            <div class="table-wrap"><table id="certinTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. Defensive Static Malware & YARA-Lite Lab -->
+      <div class="tab-panel" id="tab-malware">
+        <div class="split">
+          <div class="card">
+            <h3>🧪 Defensive Static Sample Analyzer (Zero Execution)</h3>
+            <form id="malwareForm" class="form">
+              <label>Sample Identifier <input name="sample_name" required placeholder="suspicious_script.txt" /></label>
+              <label>Static Text / Script Content<textarea name="sample_text" rows="4" required placeholder="Paste static artifact text for MD5/SHA256, Shannon entropy, and YARA-Lite matching..."></textarea></label>
+              <button type="submit" class="btn btn-primary">Run Static Analysis</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🔬 Static Analysis History</h3>
+            <div class="table-wrap"><table id="malwareTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15. Security Knowledge Graph -->
+      <div class="tab-panel" id="tab-graph">
+        <div class="card">
+          <div class="row-between">
+            <h3>🕸️ Cross-Domain Security Knowledge Graph</h3>
+            <button id="refreshGraphBtn" class="btn btn-accent">Rebuild Live Graph</button>
+          </div>
+          <p class="muted">Links Assets, Risks, SOC Events, Incident Cases, Cryptographic Evidence, and Threat IOCs for your isolated tenant.</p>
+          <pre id="graphOutputBox" class="code-box">Click "Rebuild Live Graph" to inspect current tenant nodes and relationships.</pre>
         </div>
       </div>
     </section>

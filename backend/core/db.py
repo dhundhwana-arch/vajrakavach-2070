@@ -240,6 +240,50 @@ CREATE TABLE IF NOT EXISTS sbom_records (
     created_at TEXT NOT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS banking_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    account_alias TEXT NOT NULL,
+    amount_inr REAL NOT NULL,
+    channel TEXT NOT NULL,
+    counterparty TEXT NOT NULL DEFAULT '',
+    anomaly_score INTEGER NOT NULL,
+    risk_level TEXT NOT NULL,
+    triggered_rules_json TEXT NOT NULL,
+    review_status TEXT NOT NULL DEFAULT 'pending_human_review',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS certin_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    incident_category TEXT NOT NULL,
+    affected_service TEXT NOT NULL,
+    detected_at TEXT NOT NULL,
+    deadline_utc TEXT NOT NULL,
+    sla_status TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    report_draft_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS malware_analyses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    sample_name TEXT NOT NULL,
+    md5_hash TEXT NOT NULL,
+    sha1_hash TEXT NOT NULL,
+    sha256_hash TEXT NOT NULL,
+    shannon_entropy REAL NOT NULL,
+    matched_rules_json TEXT NOT NULL,
+    indicators_json TEXT NOT NULL,
+    risk_level TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
 """
 
 DEFAULT_VERIFIED_TOOLS = [
