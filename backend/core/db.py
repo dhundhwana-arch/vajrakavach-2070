@@ -10,7 +10,95 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def get_connection(db_path: Optional[Path] = None) -> sqlite3.Connection:
+
+import re as _re
+
+
+class CompatRow(dict):
+    """Dict-like row that also supports integer index access (row[0]) like sqlite3.Row."""
+    def __init__(self, columns, values):
+        super().__init__(zip(columns, values))
+        self._values = tuple(values)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._values[key]
+        return super().__getitem__(key)
+
+
+def translate_sqlite_to_pg_sql(sql: str) -> str:
+    """Translates SQLite '?' placeholders and DDL to PostgreSQL syntax."""
+    translated = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+    translated = translated.replace("?", "%s")
+    stripped = translated.strip().rstrip(";")
+    if stripped.upper().startswith("INSERT INTO") and "RETURNING" not in stripped.upper():
+        translated = stripped + " RETURNING id"
+    return translated
+
+
+class PostgresCompatCursor:
+    def __init__(self, raw_cursor, lastrowid=None):
+        self._cur = raw_cursor
+        self.lastrowid = lastrowid
+        self._cols = [d[0] for d in (raw_cursor.description or [])]
+
+    def fetchone(self):
+        row = self._cur.fetchone()
+        if row is None:
+            return None
+        return CompatRow(self._cols, row)
+
+    def fetchall(self):
+        return [CompatRow(self._cols, r) for r in self._cur.fetchall()]
+
+
+class PostgresCompatConnection:
+    """Wraps a psycopg v3 connection to match the sqlite3.Connection interface used across all 25 modules."""
+    def __init__(self, raw_conn):
+        self._conn = raw_conn
+
+    def execute(self, sql: str, params=()):
+        pg_sql = translate_sqlite_to_pg_sql(sql)
+        cur = self._conn.cursor()
+        try:
+            cur.execute(pg_sql, params or ())
+        except Exception as exc:
+            # Map PostgreSQL unique/FK violations to sqlite3.IntegrityError so module handlers work identically
+            if exc.__class__.__name__ in {"UniqueViolation", "ForeignKeyViolation", "IntegrityError"}:
+                raise sqlite3.IntegrityError(str(exc)) from exc
+            raise
+        lastrowid = None
+        if pg_sql.strip().upper().startswith("INSERT INTO") and "RETURNING ID" in pg_sql.upper():
+            row = cur.fetchone()
+            if row:
+                lastrowid = row[0]
+        return PostgresCompatCursor(cur, lastrowid=lastrowid)
+
+    def executescript(self, script: str):
+        for stmt in script.split(";"):
+            cleaned = stmt.strip()
+            if cleaned:
+                self.execute(cleaned)
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+
+def _is_postgres_url(url: str) -> bool:
+    return bool(url and (url.startswith("postgres://") or url.startswith("postgresql://")))
+
+
+def get_connection(db_path: Optional[Path] = None):
+    if db_path is None and _is_postgres_url(config.DATABASE_URL):
+        import psycopg
+        raw = psycopg.connect(config.DATABASE_URL)
+        return PostgresCompatConnection(raw)
     target = Path(db_path) if db_path else config.DB_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(target), timeout=15.0)
