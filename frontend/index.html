@@ -11,7 +11,7 @@
     <div class="brand">
       <span class="shield">🛡️</span>
       <div>
-        <h1>VAJRAKAVACH 2070 <span class="badge">v0.2.0 MVP</span></h1>
+        <h1>VAJRAKAVACH 2070 <span class="badge">v0.3.0 Phase 3</span></h1>
         <p class="sub" data-i18n="subtitle">Global Cybersecurity &amp; Digital Defense Intelligence Ecosystem</p>
       </div>
     </div>
@@ -67,6 +67,10 @@
         <button class="tab" data-tab="evidence" data-i18n="tabEvidence">Digital Forensics</button>
         <button class="tab" data-tab="tools" data-i18n="tabTools">Tool Registry</button>
         <button class="tab" data-tab="compliance" data-i18n="tabCompliance">Compliance &amp; Audit</button>
+        <button class="tab" data-tab="appsec" data-i18n="tabAppsec">Web/API &amp; Cloud</button>
+        <button class="tab" data-tab="aisec" data-i18n="tabAisec">AI Security</button>
+        <button class="tab" data-tab="intel" data-i18n="tabIntel">Threat Intel</button>
+        <button class="tab" data-tab="sbom" data-i18n="tabSbom">Supply Chain SBOM</button>
       </nav>
 
       <div id="statusToast" class="toast hidden"></div>
@@ -209,6 +213,105 @@
             <button id="verifyAuditBtn" class="btn btn-accent">Verify SHA-256 Chain Now</button>
           </div>
           <div class="table-wrap"><table id="auditTable"></table></div>
+        </div>
+      </div>
+
+      <!-- 8. Web, API & Cloud IaC Security -->
+      <div class="tab-panel" id="tab-appsec">
+        <div class="split">
+          <div class="card">
+            <h3>🌐 Web Header &amp; Cloud IaC Auditor</h3>
+            <form id="webHeaderForm" class="form">
+              <label>Target Application Name <input name="target_name" required placeholder="citizen-portal.gov.in" /></label>
+              <label>HTTP Response Headers (Paste Authorized Output)<textarea name="headers_text" rows="3" required placeholder="Strict-Transport-Security: max-age=31536000&#10;X-Content-Type-Options: nosniff"></textarea></label>
+              <button type="submit" class="btn btn-primary">Audit Web Headers</button>
+            </form>
+            <hr style="border-color:#233354;margin:16px 0;" />
+            <form id="cloudIacForm" class="form">
+              <label>Cloud / IaC Config Name <input name="target_name" required placeholder="prod-vpc-dockerfile" /></label>
+              <label>Dockerfile / IAM JSON / Config Text<textarea name="config_text" rows="3" required placeholder="USER root&#10;0.0.0.0/0 port 22"></textarea></label>
+              <button type="submit" class="btn btn-accent">Audit Cloud / IaC Config</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>📊 Security Assessment Results</h3>
+            <div class="table-wrap"><table id="assessmentsTable"></table></div>
+            <pre id="assessmentDetailBox" class="code-box hidden"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. AI & Agent Security -->
+      <div class="tab-panel" id="tab-aisec">
+        <div class="split">
+          <div class="card">
+            <h3>🤖 Prompt Injection &amp; PII Leakage Guard</h3>
+            <form id="aiEvalForm" class="form">
+              <label>Target AI Model / Agent <input name="model_name" value="enterprise-rag-agent" required /></label>
+              <label>Prompt or Output Sample to Evaluate<textarea name="sample_text" rows="4" required placeholder="Paste prompt or LLM response to check for injection or PAN/Aadhaar/token leaks..."></textarea></label>
+              <button type="submit" class="btn btn-primary">Run AI Guardrail Check</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🛡️ AI Guardrail Evaluation Output</h3>
+            <pre id="aiEvalResultBox" class="code-box">Run an evaluation to see prompt-injection and PII leakage findings.</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Threat Intelligence & IOC Correlation -->
+      <div class="tab-panel" id="tab-intel">
+        <div class="split">
+          <div class="card">
+            <h3>🎯 Add Verified Threat IOC</h3>
+            <form id="iocForm" class="form">
+              <label>IOC Type
+                <select name="ioc_type">
+                  <option value="ip">IP Address</option>
+                  <option value="domain">Domain</option>
+                  <option value="sha256">SHA-256 Hash</option>
+                  <option value="cve">CVE ID</option>
+                  <option value="url">URL</option>
+                </select>
+              </label>
+              <label>Indicator Value <input name="indicator" required placeholder="198.51.100.42 or CVE-2026-0001" /></label>
+              <label>MITRE ATT&amp;CK Tactic <input name="mitre_tactic" value="Command and Control" /></label>
+              <label>Confidence (0-100) <input type="number" name="confidence" min="0" max="100" value="85" /></label>
+              <button type="submit" class="btn btn-primary">Save IOC</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="row-between">
+              <h3>🛰️ Tenant Threat IOCs</h3>
+              <button id="correlateIocBtn" class="btn btn-accent">Correlate vs SOC &amp; Assets</button>
+            </div>
+            <div class="table-wrap"><table id="iocsTable"></table></div>
+            <pre id="iocMatchBox" class="code-box hidden"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. Software Supply Chain SBOM -->
+      <div class="tab-panel" id="tab-sbom">
+        <div class="split">
+          <div class="card">
+            <h3>📦 Analyze Software Dependencies (SBOM)</h3>
+            <form id="sbomForm" class="form">
+              <label>Project Name <input name="project_name" required placeholder="banking-payment-api" /></label>
+              <label>Ecosystem
+                <select name="ecosystem">
+                  <option value="python">Python (requirements.txt)</option>
+                  <option value="npm">Node.js (package.json)</option>
+                </select>
+              </label>
+              <label>Manifest Content<textarea name="manifest_text" rows="4" required placeholder="fastapi==0.115.0&#10;requests>=2.31.0"></textarea></label>
+              <button type="submit" class="btn btn-primary">Generate SBOM &amp; Audit</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>📑 SBOM Records</h3>
+            <div class="table-wrap"><table id="sbomTable"></table></div>
+          </div>
         </div>
       </div>
     </section>

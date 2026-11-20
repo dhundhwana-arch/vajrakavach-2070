@@ -179,6 +179,67 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TEXT NOT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS security_assessments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    assessment_type TEXT NOT NULL,
+    target_name TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    findings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ai_models (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    risk_tier TEXT NOT NULL DEFAULT 'medium',
+    rag_enabled INTEGER NOT NULL DEFAULT 0,
+    human_approval_required INTEGER NOT NULL DEFAULT 1,
+    allowed_tools TEXT NOT NULL DEFAULT 'none',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ai_evaluations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    model_name TEXT NOT NULL,
+    prompt_injection_risk TEXT NOT NULL,
+    pii_leakage_risk TEXT NOT NULL,
+    findings_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS threat_iocs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    ioc_type TEXT NOT NULL,
+    indicator TEXT NOT NULL,
+    mitre_tactic TEXT NOT NULL DEFAULT 'Command and Control',
+    confidence INTEGER NOT NULL DEFAULT 75,
+    source_reliability TEXT NOT NULL DEFAULT 'B',
+    source_name TEXT NOT NULL DEFAULT 'manual_intel',
+    expires_at TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sbom_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    project_name TEXT NOT NULL,
+    ecosystem TEXT NOT NULL,
+    total_packages INTEGER NOT NULL,
+    unpinned_count INTEGER NOT NULL,
+    sbom_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
 """
 
 DEFAULT_VERIFIED_TOOLS = [

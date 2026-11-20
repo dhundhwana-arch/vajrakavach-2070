@@ -16,6 +16,10 @@ const I18N = {
     tabTools: "ટૂલ રજીસ્ટ્રી",
     tabCompliance: "કોમ્પ્લાયન્સ અને ઓડિટ",
     auditBannerTitle: "🔒 ક્રિપ્ટોગ્રાફિક ઓડિટ ચેઇન અને કાયદેસર મર્યાદા",
+    tabAppsec: "વેબ/API અને ક્લાઉડ",
+    tabAisec: "AI સુરક્ષા",
+    tabIntel: "થ્રેટ ઇન્ટેલ",
+    tabSbom: "SBOM સપ્લાય ચેઇન",
   },
   en: {
     subtitle: "Global Cybersecurity & Digital Defense Intelligence Ecosystem",
@@ -34,6 +38,10 @@ const I18N = {
     tabTools: "Tool Registry",
     tabCompliance: "Compliance & Audit",
     auditBannerTitle: "🔒 Cryptographic Audit Chain & Legal Boundary",
+    tabAppsec: "Web/API & Cloud",
+    tabAisec: "AI Security",
+    tabIntel: "Threat Intel",
+    tabSbom: "Supply Chain SBOM",
   },
 };
 
@@ -190,6 +198,7 @@ function renderAppState() {
   if (loggedIn) {
     chip.textContent = `${currentUser.tenant_name || "Tenant"} | ${currentUser.email} (${currentUser.role})`;
     loadAllData();
+    loadPhase3Data();
   }
 }
 
@@ -277,3 +286,88 @@ document.getElementById("verifyAuditBtn").addEventListener("click", async () => 
 
 applyLanguage();
 renderAppState();
+
+
+async function loadPhase3Data() {
+  try {
+    const [assRes, iocRes, sbomRes] = await Promise.all([
+      api("/api/v1/security/assessments"),
+      api("/api/v1/threat-intel/iocs"),
+      api("/api/v1/sbom"),
+    ]);
+    document.getElementById("assessmentsTable").innerHTML =
+      "<tr><th>ID</th><th>Type</th><th>Target</th><th>Score</th><th>Issues</th></tr>" +
+      assRes.items.map((a) => `<tr><td>${a.id}</td><td>${esc(a.assessment_type)}</td><td>${esc(a.target_name)}</td><td><strong>${a.score}/100</strong></td><td>${a.findings.length}</td></tr>`).join("");
+    document.getElementById("iocsTable").innerHTML =
+      "<tr><th>ID</th><th>Type</th><th>Indicator</th><th>MITRE Tactic</th><th>Confidence</th></tr>" +
+      iocRes.items.map((i) => `<tr><td>${i.id}</td><td>${esc(i.ioc_type)}</td><td><code>${esc(i.indicator)}</code></td><td>${esc(i.mitre_tactic)}</td><td>${i.confidence}%</td></tr>`).join("");
+    document.getElementById("sbomTable").innerHTML =
+      "<tr><th>ID</th><th>Project</th><th>Ecosystem</th><th>Packages</th><th>Unpinned Risk</th></tr>" +
+      sbomRes.items.map((s) => `<tr><td>${s.id}</td><td>${esc(s.project_name)}</td><td>${esc(s.ecosystem)}</td><td>${s.total_packages}</td><td><span class="pill pill-${s.unpinned_count > 0 ? "medium" : "low"}">${s.unpinned_count}</span></td></tr>`).join("");
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+document.getElementById("webHeaderForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/security/web-headers", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    const box = document.getElementById("assessmentDetailBox");
+    box.textContent = JSON.stringify(res, null, 2);
+    box.classList.remove("hidden");
+    showToast(`Web Header Audit completed: Score ${res.score}/100`);
+    loadPhase3Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("cloudIacForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/security/cloud-iac", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    const box = document.getElementById("assessmentDetailBox");
+    box.textContent = JSON.stringify(res, null, 2);
+    box.classList.remove("hidden");
+    showToast(`Cloud/IaC Audit completed: Score ${res.score}/100`);
+    loadPhase3Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("aiEvalForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/ai/evaluate", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    document.getElementById("aiEvalResultBox").textContent = JSON.stringify(res, null, 2);
+    showToast(`AI Guardrail Check: Injection=${res.prompt_injection_risk}, PII=${res.pii_leakage_risk}`);
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("iocForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await api("/api/v1/threat-intel/iocs", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast("Threat IOC saved & audit logged.");
+    loadPhase3Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("correlateIocBtn").addEventListener("click", async () => {
+  try {
+    const res = await api("/api/v1/threat-intel/correlate");
+    const box = document.getElementById("iocMatchBox");
+    box.textContent = JSON.stringify(res, null, 2);
+    box.classList.remove("hidden");
+    showToast(`IOC Correlation finished: ${res.matches_found} match(es) found.`);
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("sbomForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/sbom", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`SBOM generated: ${res.total_packages} packages (${res.unpinned_count} unpinned).`);
+    loadPhase3Data();
+  } catch (err) { showToast(err.message, true); }
+});

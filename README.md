@@ -4,7 +4,7 @@
 - **Founder:** Divyesh Bambhaniya
 - **Project Developer:** Divyesh Bambhaniya
 - **Product Identity:** Developer by Divyesh Bambhaniya
-- **Current Release:** `v0.2.0` — Phase 1–2 Working Core MVP (Modular Monolith)
+- **Current Release:** `v0.3.0` — Phase 1–3 Core Security Platform (Modular Monolith)
 - **Long-Term Vision:** 2026–2070 Phased Research & Engineering Roadmap
 
 ---
@@ -45,6 +45,17 @@ Rather than faking all 20 future divisions with mock screens, this release imple
    - Live control readiness tracking across **NIST CSF 2.0**, **CERT-In Directions (6-hour reporting)**, **RBI Cybersecurity Directions 2026**, and **MeitY DPDP Rules 2025**
 8. **Global Security Command Center UI (`frontend/`)**
    - Dark-first Enterprise SOC interface with live **Gujarati (ગુજરાતી) / English** language switching connected directly to the live SQLite-backed REST API.
+
+9. **Web & API Security Analyzer (`backend/modules/web_api_sec.py`)** *(New in v0.3.0)*
+   - Local defensive HTTP security header auditor (OWASP ASVS 5.0) & OWASP API Top 10 (2023) spec checker
+10. **Cloud & IaC Posture Auditor (`backend/modules/cloud_sec.py`)** *(New in v0.3.0)*
+    - Static detection of public buckets, wildcard IAM, exposed `0.0.0.0/0` DB/SSH ports, `USER root`, and hardcoded secrets
+11. **AI & Agent Security Division (`backend/modules/ai_sec.py`)** *(New in v0.3.0)*
+    - AI model inventory + deterministic Prompt Injection & Indian PII/Token leakage guardrail scanner
+12. **Threat Intelligence & IOC Correlation (`backend/modules/threat_intel.py`)** *(New in v0.3.0)*
+    - MITRE ATT&CK-tagged IOC database + live correlation engine against tenant SOC events and assets
+13. **Software Supply Chain & SBOM Analyzer (`backend/modules/sbom.py`)** *(New in v0.3.0)*
+    - Parses Python `requirements.txt` and Node.js `package.json` into CycloneDX-Lite SBOM records and flags unpinned dependencies
 
 ## 🚀 Quickstart (Termux / Linux / macOS / Windows)
 

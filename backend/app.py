@@ -11,7 +11,7 @@ from backend import config
 from backend.core.audit import list_audit_logs, verify_audit_chain
 from backend.core.db import get_connection, init_db
 from backend.core.security import AuthError, verify_token
-from backend.modules import assets, auth, compliance, evidence, risks, soc, tools
+from backend.modules import ai_sec, assets, auth, cloud_sec, compliance, evidence, risks, sbom, soc, threat_intel, tools, web_api_sec
 
 
 class VajraHandler(BaseHTTPRequestHandler):
@@ -196,6 +196,47 @@ class VajraHandler(BaseHTTPRequestHandler):
             if path == "/api/v1/audit/verify" and method == "GET":
                 self._send_json(verify_audit_chain(conn, actor["tid"]), 200)
                 return
+
+            # --- Phase 3: Web & API Security, Cloud IaC, AI Security, Threat Intel, SBOM ---
+            if path == "/api/v1/security/assessments" and method == "GET":
+                self._send_json({"items": web_api_sec.list_assessments(conn, actor)}, 200)
+                return
+            if path == "/api/v1/security/web-headers" and method == "POST":
+                self._send_json(web_api_sec.audit_web_headers(conn, actor, self._read_json()), 201)
+                return
+            if path == "/api/v1/security/api-owasp" and method == "POST":
+                self._send_json(web_api_sec.audit_api_spec(conn, actor, self._read_json()), 201)
+                return
+            if path == "/api/v1/security/cloud-iac" and method == "POST":
+                self._send_json(cloud_sec.audit_cloud_config(conn, actor, self._read_json()), 201)
+                return
+            if path == "/api/v1/ai/models":
+                if method == "GET":
+                    self._send_json({"items": ai_sec.list_ai_models(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(ai_sec.register_ai_model(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/ai/evaluate" and method == "POST":
+                self._send_json(ai_sec.evaluate_ai_text(conn, actor, self._read_json()), 201)
+                return
+            if path == "/api/v1/threat-intel/iocs":
+                if method == "GET":
+                    self._send_json({"items": threat_intel.list_iocs(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(threat_intel.add_ioc(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/threat-intel/correlate" and method == "GET":
+                self._send_json(threat_intel.correlate_iocs(conn, actor), 200)
+                return
+            if path == "/api/v1/sbom":
+                if method == "GET":
+                    self._send_json({"items": sbom.list_sboms(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(sbom.analyze_sbom(conn, actor, self._read_json()), 201)
+                    return
 
             self._send_json({"error": "Endpoint not found"}, 404)
 
