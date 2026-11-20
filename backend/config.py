@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get("VAJRA_SECRET_KEY") or secrets.token_hex(32)
 TOKEN_TTL_SECONDS = int(os.environ.get("VAJRA_TOKEN_TTL", "43200"))  # 12 hours
 MAX_BODY_BYTES = 1_048_576  # 1 MB safety cap
 
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.5.0"
 APP_NAME = "VAJRAKAVACH 2070"
 FOUNDER = "Divyesh Bambhaniya"
 PRODUCT_IDENTITY = "Developer by Divyesh Bambhaniya"

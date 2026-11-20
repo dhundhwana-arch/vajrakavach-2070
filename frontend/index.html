@@ -11,7 +11,7 @@
     <div class="brand">
       <span class="shield">🛡️</span>
       <div>
-        <h1>VAJRAKAVACH 2070 <span class="badge">v0.4.0 Phase 4</span></h1>
+        <h1>VAJRAKAVACH 2070 <span class="badge">v0.5.0 Phase 5</span></h1>
         <p class="sub" data-i18n="subtitle">Global Cybersecurity &amp; Digital Defense Intelligence Ecosystem</p>
       </div>
     </div>
@@ -75,6 +75,9 @@
         <button class="tab" data-tab="gov" data-i18n="tabGov">Gov / CERT-In</button>
         <button class="tab" data-tab="malware" data-i18n="tabMalware">Malware Lab</button>
         <button class="tab" data-tab="graph" data-i18n="tabGraph">Knowledge Graph</button>
+        <button class="tab" data-tab="osint" data-i18n="tabOsint">OSINT &amp; Privacy</button>
+        <button class="tab" data-tab="labs" data-i18n="tabLabs">Simulation Labs</button>
+        <button class="tab" data-tab="fusion" data-i18n="tabFusion">Intel Fusion</button>
       </nav>
 
       <div id="statusToast" class="toast hidden"></div>
@@ -401,6 +404,81 @@
           </div>
           <p class="muted">Links Assets, Risks, SOC Events, Incident Cases, Cryptographic Evidence, and Threat IOCs for your isolated tenant.</p>
           <pre id="graphOutputBox" class="code-box">Click "Rebuild Live Graph" to inspect current tenant nodes and relationships.</pre>
+        </div>
+      </div>
+
+      <!-- 16. Lawful OSINT & Privacy-Preserving Sharing -->
+      <div class="tab-panel" id="tab-osint">
+        <div class="split">
+          <div class="card">
+            <h3>🌍 Record Lawful OSINT (Public/Licensed Only)</h3>
+            <form id="osintForm" class="form">
+              <label>Subject <input name="subject" required placeholder="Public Advisory — Zero-Day Notice" /></label>
+              <label>Classification
+                <select name="classification">
+                  <option value="public">Public (Surface Web / Advisory)</option>
+                  <option value="licensed">Licensed Threat Feed</option>
+                </select>
+              </label>
+              <label>Source URL <input name="source_url" required placeholder="https://www.cert-in.org.in/" /></label>
+              <label>Excerpt (Auto Duplicate Check)<textarea name="content_excerpt" rows="2" required placeholder="Paste verified public advisory excerpt..."></textarea></label>
+              <button type="submit" class="btn btn-primary">Record OSINT</button>
+            </form>
+            <hr style="border-color:#233354;margin:16px 0;" />
+            <h3>🔐 Privacy-Preserving Intel Sanitizer</h3>
+            <form id="privacyForm" class="form">
+              <label>Package Title <input name="title" required placeholder="Sanitized Banking Phishing IOCs" /></label>
+              <label>TLP Level
+                <select name="tlp_level">
+                  <option value="TLP:GREEN">TLP:GREEN</option>
+                  <option value="TLP:CLEAR">TLP:CLEAR</option>
+                  <option value="TLP:AMBER">TLP:AMBER</option>
+                </select>
+              </label>
+              <label>Raw Text (Auto-Redacts Email/PAN/Phone/Internal IP)<textarea name="raw_payload" rows="2" required placeholder="Alert for user@bank.in on 192.168.1.55 PAN ABCDE1234F"></textarea></label>
+              <button type="submit" class="btn btn-accent">Sanitize &amp; Create Shareable Package</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>📡 OSINT &amp; Sanitized Shares</h3>
+            <div class="table-wrap"><table id="osintTable"></table></div>
+            <pre id="privacyResultBox" class="code-box hidden"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 17. Defensive Research & Simulation Labs -->
+      <div class="tab-panel" id="tab-labs">
+        <div class="split">
+          <div class="card">
+            <h3>🧪 Run Isolated Defensive Simulation</h3>
+            <form id="labForm" class="form">
+              <label>Simulation Scenario
+                <select name="scenario_id">
+                  <option value="phishing_response_drill">Phishing Containment &amp; CERT-In 6h Drill</option>
+                  <option value="api_bola_defense_lab">OWASP API1 Tenant Isolation Lab</option>
+                  <option value="ransomware_containment_drill">Ransomware Containment &amp; Audit Lab</option>
+                  <option value="ai_prompt_defense_lab">AI Prompt Injection &amp; PII Defense Lab</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn-primary">Execute Safe Simulation</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>📋 Reproducible Lab Run History</h3>
+            <div class="table-wrap"><table id="labsTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 18. Cross-Source Intelligence Fusion -->
+      <div class="tab-panel" id="tab-fusion">
+        <div class="card">
+          <div class="row-between">
+            <h3>🧠 Unified Cross-Source Intelligence Fusion</h3>
+            <button id="refreshFusionBtn" class="btn btn-accent">Recompute Readiness Score</button>
+          </div>
+          <pre id="fusionBox" class="code-box">Loading cross-domain intelligence fusion...</pre>
         </div>
       </div>
     </section>

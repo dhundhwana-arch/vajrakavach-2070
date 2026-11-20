@@ -11,7 +11,7 @@ from backend import config
 from backend.core.audit import list_audit_logs, verify_audit_chain
 from backend.core.db import get_connection, init_db
 from backend.core.security import AuthError, verify_token
-from backend.modules import ai_sec, assets, auth, banking_fraud, cloud_sec, compliance, evidence, gov_certin, knowledge_graph, malware_lab, risks, sbom, soc, threat_intel, tools, web_api_sec
+from backend.modules import ai_sec, assets, auth, banking_fraud, cloud_sec, compliance, evidence, gov_certin, intel_fusion, knowledge_graph, malware_lab, osint_intel, privacy_share, risks, sbom, sim_labs, soc, threat_intel, tools, web_api_sec
 
 
 class VajraHandler(BaseHTTPRequestHandler):
@@ -262,6 +262,32 @@ class VajraHandler(BaseHTTPRequestHandler):
                     return
             if path == "/api/v1/graph/security" and method == "GET":
                 self._send_json(knowledge_graph.build_security_graph(conn, actor), 200)
+                return
+
+            # --- Phase 5: Lawful OSINT, Privacy-Preserving Sharing, Simulation Labs, Intel Fusion ---
+            if path == "/api/v1/osint":
+                if method == "GET":
+                    self._send_json({"items": osint_intel.list_osint(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(osint_intel.record_osint(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/privacy/shares":
+                if method == "GET":
+                    self._send_json({"items": privacy_share.list_shares(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(privacy_share.sanitize_and_share(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/labs/runs":
+                if method == "GET":
+                    self._send_json({"items": sim_labs.list_lab_runs(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(sim_labs.run_simulation_lab(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/intel/fusion" and method == "GET":
+                self._send_json(intel_fusion.compute_intel_fusion(conn, actor), 200)
                 return
 
             self._send_json({"error": "Endpoint not found"}, 404)

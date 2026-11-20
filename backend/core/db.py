@@ -284,6 +284,45 @@ CREATE TABLE IF NOT EXISTS malware_analyses (
     created_at TEXT NOT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS osint_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    classification TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    source_reliability TEXT NOT NULL DEFAULT 'B',
+    content_excerpt TEXT NOT NULL,
+    dedup_hash TEXT NOT NULL,
+    duplicate_of_id INTEGER,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS privacy_shares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    tlp_level TEXT NOT NULL,
+    sanitized_payload TEXT NOT NULL,
+    redactions_json TEXT NOT NULL,
+    package_sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lab_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    scenario_id TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    passed_checks INTEGER NOT NULL,
+    total_checks INTEGER NOT NULL,
+    results_json TEXT NOT NULL,
+    experiment_sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
 """
 
 DEFAULT_VERIFIED_TOOLS = [

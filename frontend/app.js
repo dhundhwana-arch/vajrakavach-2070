@@ -24,6 +24,9 @@ const I18N = {
     tabGov: "ગવર્નમેન્ટ / CERT-In",
     tabMalware: "માલવેર લેબ",
     tabGraph: "નોલેજ ગ્રાફ",
+    tabOsint: "OSINT અને પ્રાઇવસી",
+    tabLabs: "સિમ્યુલેશન લેબ",
+    tabFusion: "ઇન્ટેલ ફ્યુઝન",
   },
   en: {
     subtitle: "Global Cybersecurity & Digital Defense Intelligence Ecosystem",
@@ -50,6 +53,9 @@ const I18N = {
     tabGov: "Gov / CERT-In",
     tabMalware: "Malware Lab",
     tabGraph: "Knowledge Graph",
+    tabOsint: "OSINT & Privacy",
+    tabLabs: "Simulation Labs",
+    tabFusion: "Intel Fusion",
   },
 };
 
@@ -208,6 +214,7 @@ function renderAppState() {
     loadAllData();
     loadPhase3Data();
     loadPhase4Data();
+    loadPhase5Data();
   }
 }
 
@@ -433,3 +440,55 @@ document.getElementById("malwareForm").addEventListener("submit", async (e) => {
 });
 
 document.getElementById("refreshGraphBtn").addEventListener("click", loadPhase4Data);
+
+
+async function loadPhase5Data() {
+  try {
+    const [osintRes, labRes, fusionRes] = await Promise.all([
+      api("/api/v1/osint"),
+      api("/api/v1/labs/runs"),
+      api("/api/v1/intel/fusion"),
+    ]);
+    document.getElementById("osintTable").innerHTML =
+      "<tr><th>ID</th><th>Subject</th><th>Class</th><th>Duplicate?</th><th>Source</th></tr>" +
+      osintRes.items.map((o) => `<tr><td>${o.id}</td><td>${esc(o.subject)}</td><td>${esc(o.classification)}</td><td>${o.duplicate_of_id ? "Dup #" + o.duplicate_of_id : "Unique"}</td><td>${esc(o.source_url)}</td></tr>`).join("");
+    document.getElementById("labsTable").innerHTML =
+      "<tr><th>ID</th><th>Scenario</th><th>Score</th><th>Checks</th><th>Experiment SHA-256</th></tr>" +
+      labRes.items.map((l) => `<tr><td>${l.id}</td><td>${esc(l.scenario_id)}</td><td><strong>${l.score}/100</strong></td><td>${l.passed_checks}/${l.total_checks}</td><td><code>${esc(l.experiment_sha256.slice(0, 14))}...</code></td></tr>`).join("");
+    document.getElementById("fusionBox").textContent = JSON.stringify(fusionRes, null, 2);
+  } catch (err) { showToast(err.message, true); }
+}
+
+document.getElementById("osintForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/osint", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(res.duplicate_detected ? `OSINT #${res.id} saved (Duplicate of #${res.duplicate_of_id}).` : `Unique Lawful OSINT #${res.id} recorded.`);
+    loadPhase5Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("privacyForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/privacy/shares", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    const box = document.getElementById("privacyResultBox");
+    box.textContent = JSON.stringify(res, null, 2);
+    box.classList.remove("hidden");
+    showToast(`Sanitized ${res.tlp_level} package #${res.id} created.`);
+    loadPhase5Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("labForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/labs/runs", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    showToast(`Simulation completed: ${res.score}/100 (${res.passed_checks}/${res.total_checks} checks).`);
+    loadPhase5Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("refreshFusionBtn").addEventListener("click", loadPhase5Data);

@@ -4,7 +4,7 @@
 - **Founder:** Divyesh Bambhaniya
 - **Project Developer:** Divyesh Bambhaniya
 - **Product Identity:** Developer by Divyesh Bambhaniya
-- **Current Release:** `v0.4.0` — Phase 1–4 Enterprise, Banking & Gov Security Platform
+- **Current Release:** `v0.5.0` — Phase 1–5 Intelligence Expansion & Simulation Platform
 - **Long-Term Vision:** 2026–2070 Phased Research & Engineering Roadmap
 
 ---
@@ -65,6 +65,13 @@ Rather than faking all 20 future divisions with mock screens, this release imple
     - Zero-execution static MD5/SHA-1/SHA-256 hashing, Shannon entropy computation, and defensive YARA-Lite matching
 17. **Security Knowledge Graph Engine (`backend/modules/knowledge_graph.py`)** *(New in v0.4.0)*
     - Real-time tenant-isolated relationship graph linking Assets, Risks, SOC Events, Cases, Evidence, and Threat IOCs
+
+18. **Lawful OSINT Intelligence & Duplicate Detector (`backend/modules/osint_intel.py`)** *(New in v0.5.0)*
+    - Enforces `public`/`licensed` OSINT boundaries with SHA-256 content deduplication
+19. **Privacy-Preserving Intelligence Sanitizer (`backend/modules/privacy_share.py`)** *(New in v0.5.0)*
+    - Auto-redacts Emails, Indian PAN, Aadhaar-like IDs, Phones, and internal RFC1918 IPs before TLP sharing
+20. **Defensive Simulation Labs & Cross-Source Intel Fusion (`backend/modules/sim_labs.py`, `backend/modules/intel_fusion.py`)** *(New in v0.5.0)*
+    - Reproducible sandboxed defensive drills + unified cross-domain organizational readiness score
 
 ## 🚀 Quickstart (Termux / Linux / macOS / Windows)
 
