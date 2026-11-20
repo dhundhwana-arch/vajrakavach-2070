@@ -27,6 +27,9 @@ const I18N = {
     tabOsint: "OSINT અને પ્રાઇવસી",
     tabLabs: "સિમ્યુલેશન લેબ",
     tabFusion: "ઇન્ટેલ ફ્યુઝન",
+    tabPqc: "PQC અને હાર્ડવેર",
+    tabAdaptive: "એડેપ્ટિવ ડિફેન્સ",
+    tabResearch: "2070 રિસર્ચ હબ",
   },
   en: {
     subtitle: "Global Cybersecurity & Digital Defense Intelligence Ecosystem",
@@ -56,6 +59,9 @@ const I18N = {
     tabOsint: "OSINT & Privacy",
     tabLabs: "Simulation Labs",
     tabFusion: "Intel Fusion",
+    tabPqc: "PQC & Hardware",
+    tabAdaptive: "Adaptive Defense",
+    tabResearch: "2070 Research Hub",
   },
 };
 
@@ -215,6 +221,7 @@ function renderAppState() {
     loadPhase3Data();
     loadPhase4Data();
     loadPhase5Data();
+    loadPhase68Data();
   }
 }
 
@@ -492,3 +499,66 @@ document.getElementById("labForm").addEventListener("submit", async (e) => {
 });
 
 document.getElementById("refreshFusionBtn").addEventListener("click", loadPhase5Data);
+
+
+async function loadPhase68Data() {
+  try {
+    const [pqcRes, hwRes, adRes, rRes] = await Promise.all([
+      api("/api/v1/pqc/inventory"),
+      api("/api/v1/infra/hardware"),
+      api("/api/v1/adaptive/postures"),
+      api("/api/v1/research/proposals"),
+    ]);
+    document.getElementById("pqcSummaryText").textContent = `PQC Readiness: ${pqcRes.pqc_readiness_pct}% (${pqcRes.quantum_ready_count}/${pqcRes.total} systems quantum-ready)`;
+    document.getElementById("pqcTable").innerHTML =
+      "<tr><th>System</th><th>Algorithm</th><th>Risk</th><th>Migration Target</th></tr>" +
+      pqcRes.items.map((p) => `<tr><td>${esc(p.system_name)}</td><td><code>${esc(p.algorithm)}</code></td><td><span class="pill pill-${p.quantum_risk === "quantum_ready" ? "low" : p.quantum_risk}">${esc(p.quantum_risk)}</span></td><td>${esc(p.migration_target)}</td></tr>`).join("");
+    document.getElementById("hwTable").innerHTML =
+      "<tr><th>Device</th><th>Sector</th><th>TPM</th><th>Attestation</th></tr>" +
+      hwRes.items.map((h) => `<tr><td>${esc(h.device_name)}</td><td>${esc(h.sector)}</td><td>${h.tpm_enabled ? "Yes" : "No"}</td><td><span class="pill pill-${h.attestation_status === "ATTESTATION_VERIFIED" ? "low" : "critical"}">${esc(h.attestation_status)}</span></td></tr>`).join("");
+    if (adRes.items.length > 0) {
+      document.getElementById("adaptiveBox").textContent = JSON.stringify(adRes.items[0], null, 2);
+    }
+    document.getElementById("researchTable").innerHTML =
+      "<tr><th>Title</th><th>Domain</th><th>Maturity</th><th>Provenance SHA-256</th></tr>" +
+      rRes.items.map((r) => `<tr><td>${esc(r.title)}</td><td>${esc(r.domain)}</td><td><span class="pill pill-medium">${esc(r.maturity_stage)}</span></td><td><code>${esc(r.provenance_sha256.slice(0, 14))}...</code></td></tr>`).join("");
+  } catch (err) { showToast(err.message, true); }
+}
+
+document.getElementById("pqcForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/pqc/inventory", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`PQC Audit: ${res.system_name} -> ${res.quantum_risk}`);
+    loadPhase68Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("hwForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/infra/hardware", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`Hardware Attestation: ${res.attestation_status}`, res.attestation_status === "ATTESTATION_FAILED");
+    loadPhase68Data();
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("evalAdaptiveBtn").addEventListener("click", async () => {
+  try {
+    const res = await api("/api/v1/adaptive/evaluate", "POST", {});
+    document.getElementById("adaptiveBox").textContent = JSON.stringify(res, null, 2);
+    showToast(`Adaptive Posture: ${res.posture_level} (Risk Index ${res.risk_index}/100)`);
+  } catch (err) { showToast(err.message, true); }
+});
+
+document.getElementById("researchForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api("/api/v1/research/proposals", "POST", Object.fromEntries(new FormData(e.target).entries()));
+    e.target.reset();
+    showToast(`Research Proposal #${res.id} sealed with SHA-256 provenance.`);
+    loadPhase68Data();
+  } catch (err) { showToast(err.message, true); }
+});

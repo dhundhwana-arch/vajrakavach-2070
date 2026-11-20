@@ -4,7 +4,7 @@
 - **Founder:** Divyesh Bambhaniya
 - **Project Developer:** Divyesh Bambhaniya
 - **Product Identity:** Developer by Divyesh Bambhaniya
-- **Current Release:** `v0.5.0` — Phase 1–5 Intelligence Expansion & Simulation Platform
+- **Current Release:** `v1.0.0` — Complete Phase 0–8 Full Roadmap Software Foundation
 - **Long-Term Vision:** 2026–2070 Phased Research & Engineering Roadmap
 
 ---
@@ -72,6 +72,15 @@ Rather than faking all 20 future divisions with mock screens, this release imple
     - Auto-redacts Emails, Indian PAN, Aadhaar-like IDs, Phones, and internal RFC1918 IPs before TLP sharing
 20. **Defensive Simulation Labs & Cross-Source Intel Fusion (`backend/modules/sim_labs.py`, `backend/modules/intel_fusion.py`)** *(New in v0.5.0)*
     - Reproducible sandboxed defensive drills + unified cross-domain organizational readiness score
+
+21. **Post-Quantum Cryptography (PQC) Migration Auditor (`backend/modules/pqc_readiness.py`)** *(Phase 6 — v1.0.0)*
+    - Classifies broken vs quantum-vulnerable vs NIST FIPS 203/204/205-ready algorithms & HNDL shelf-life risk
+22. **Critical Infrastructure & Hardware Firmware Attestation (`backend/modules/infra_hardware.py`)** *(Phase 6 — v1.0.0)*
+    - Verifies expected vs measured SHA-256 firmware digests and TPM readiness for OT/critical sectors
+23. **Adaptive Defense Posture Engine (`backend/modules/adaptive_defense.py`)** *(Phase 7 — v1.0.0)*
+    - Live DEFCON posture scoring with strictly human-governed defensive control recommendations
+24. **Global 2070 Research Collaboration Hub (`backend/modules/research_hub.py`)** *(Phase 8 — v1.0.0)*
+    - Tracks long-term R&D hypotheses/prototypes with honest maturity labels and SHA-256 provenance hashes
 
 ## 🚀 Quickstart (Termux / Linux / macOS / Windows)
 

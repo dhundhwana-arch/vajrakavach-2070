@@ -11,7 +11,7 @@ from backend import config
 from backend.core.audit import list_audit_logs, verify_audit_chain
 from backend.core.db import get_connection, init_db
 from backend.core.security import AuthError, verify_token
-from backend.modules import ai_sec, assets, auth, banking_fraud, cloud_sec, compliance, evidence, gov_certin, intel_fusion, knowledge_graph, malware_lab, osint_intel, privacy_share, risks, sbom, sim_labs, soc, threat_intel, tools, web_api_sec
+from backend.modules import adaptive_defense, ai_sec, assets, auth, banking_fraud, cloud_sec, compliance, evidence, gov_certin, infra_hardware, intel_fusion, knowledge_graph, malware_lab, osint_intel, pqc_readiness, privacy_share, research_hub, risks, sbom, sim_labs, soc, threat_intel, tools, web_api_sec
 
 
 class VajraHandler(BaseHTTPRequestHandler):
@@ -289,6 +289,35 @@ class VajraHandler(BaseHTTPRequestHandler):
             if path == "/api/v1/intel/fusion" and method == "GET":
                 self._send_json(intel_fusion.compute_intel_fusion(conn, actor), 200)
                 return
+
+            # --- Phase 6-8: PQC Readiness, Critical Infra Hardware, Adaptive Defense, Global Research Hub ---
+            if path == "/api/v1/pqc/inventory":
+                if method == "GET":
+                    self._send_json(pqc_readiness.list_pqc_inventory(conn, actor), 200)
+                    return
+                if method == "POST":
+                    self._send_json(pqc_readiness.add_pqc_asset(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/infra/hardware":
+                if method == "GET":
+                    self._send_json({"items": infra_hardware.list_hardware(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(infra_hardware.attest_hardware(conn, actor, self._read_json()), 201)
+                    return
+            if path == "/api/v1/adaptive/postures" and method == "GET":
+                self._send_json({"items": adaptive_defense.list_postures(conn, actor)}, 200)
+                return
+            if path == "/api/v1/adaptive/evaluate" and method == "POST":
+                self._send_json(adaptive_defense.evaluate_adaptive_posture(conn, actor), 201)
+                return
+            if path == "/api/v1/research/proposals":
+                if method == "GET":
+                    self._send_json({"items": research_hub.list_proposals(conn, actor)}, 200)
+                    return
+                if method == "POST":
+                    self._send_json(research_hub.submit_proposal(conn, actor, self._read_json()), 201)
+                    return
 
             self._send_json({"error": "Endpoint not found"}, 404)
 

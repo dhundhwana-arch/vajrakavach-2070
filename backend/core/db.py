@@ -323,6 +323,59 @@ CREATE TABLE IF NOT EXISTS lab_runs (
     created_at TEXT NOT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS pqc_inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    system_name TEXT NOT NULL,
+    algorithm TEXT NOT NULL,
+    usage_context TEXT NOT NULL,
+    data_shelf_life_years INTEGER NOT NULL DEFAULT 5,
+    quantum_risk TEXT NOT NULL,
+    migration_target TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS infra_hardware (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    device_name TEXT NOT NULL,
+    sector TEXT NOT NULL,
+    firmware_version TEXT NOT NULL,
+    expected_sha256 TEXT NOT NULL,
+    measured_sha256 TEXT NOT NULL,
+    tpm_enabled INTEGER NOT NULL DEFAULT 1,
+    attestation_status TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS adaptive_postures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    posture_level TEXT NOT NULL,
+    risk_index INTEGER NOT NULL,
+    recommended_controls_json TEXT NOT NULL,
+    signals_json TEXT NOT NULL,
+    human_approval_required INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS research_proposals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    horizon TEXT NOT NULL,
+    maturity_stage TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    reference_url TEXT NOT NULL DEFAULT '',
+    provenance_sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
 """
 
 DEFAULT_VERIFIED_TOOLS = [

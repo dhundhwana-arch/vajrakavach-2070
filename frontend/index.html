@@ -11,7 +11,7 @@
     <div class="brand">
       <span class="shield">🛡️</span>
       <div>
-        <h1>VAJRAKAVACH 2070 <span class="badge">v0.5.0 Phase 5</span></h1>
+        <h1>VAJRAKAVACH 2070 <span class="badge">v1.0.0 Full (Phase 0-8)</span></h1>
         <p class="sub" data-i18n="subtitle">Global Cybersecurity &amp; Digital Defense Intelligence Ecosystem</p>
       </div>
     </div>
@@ -78,6 +78,9 @@
         <button class="tab" data-tab="osint" data-i18n="tabOsint">OSINT &amp; Privacy</button>
         <button class="tab" data-tab="labs" data-i18n="tabLabs">Simulation Labs</button>
         <button class="tab" data-tab="fusion" data-i18n="tabFusion">Intel Fusion</button>
+        <button class="tab" data-tab="pqc" data-i18n="tabPqc">PQC &amp; Hardware</button>
+        <button class="tab" data-tab="adaptive" data-i18n="tabAdaptive">Adaptive Defense</button>
+        <button class="tab" data-tab="research" data-i18n="tabResearch">2070 Research Hub</button>
       </nav>
 
       <div id="statusToast" class="toast hidden"></div>
@@ -479,6 +482,94 @@
             <button id="refreshFusionBtn" class="btn btn-accent">Recompute Readiness Score</button>
           </div>
           <pre id="fusionBox" class="code-box">Loading cross-domain intelligence fusion...</pre>
+        </div>
+      </div>
+
+      <!-- 19. Phase 6: Post-Quantum Crypto & Hardware Attestation -->
+      <div class="tab-panel" id="tab-pqc">
+        <div class="split">
+          <div class="card">
+            <h3>⚛️ Post-Quantum Cryptography (PQC) Auditor</h3>
+            <form id="pqcForm" class="form">
+              <label>System / Service Name <input name="system_name" required placeholder="National PKI Gateway" /></label>
+              <label>Current Algorithm
+                <select name="algorithm">
+                  <option value="RSA-2048">RSA-2048 (Quantum Vulnerable)</option>
+                  <option value="ECDSA-P256">ECDSA-P256 (Quantum Vulnerable)</option>
+                  <option value="SHA-1">SHA-1 (Broken)</option>
+                  <option value="AES-128">AES-128</option>
+                  <option value="AES-256">AES-256 (Quantum Ready)</option>
+                  <option value="ML-KEM-768">ML-KEM-768 (NIST FIPS 203)</option>
+                  <option value="ML-DSA-65">ML-DSA-65 (NIST FIPS 204)</option>
+                </select>
+              </label>
+              <label>Data Shelf-Life (Years) <input type="number" name="data_shelf_life_years" min="1" value="15" /></label>
+              <button type="submit" class="btn btn-primary">Audit PQC Readiness</button>
+            </form>
+            <hr style="border-color:#233354;margin:16px 0;" />
+            <h3>🔌 Critical Infra Firmware Attestation</h3>
+            <form id="hwForm" class="form">
+              <label>Device Name <input name="device_name" required placeholder="Grid-Substation-PLC-01" /></label>
+              <label>Sector
+                <select name="sector">
+                  <option value="energy">Energy / Power Grid</option>
+                  <option value="telecom">Telecom</option>
+                  <option value="banking_core">Banking Core</option>
+                  <option value="transport">Transport</option>
+                  <option value="space_defense">Space / Defense</option>
+                </select>
+              </label>
+              <label>Expected Signed SHA-256 <input name="expected_sha256" required placeholder="abc123..." /></label>
+              <label>Measured Firmware SHA-256 <input name="measured_sha256" required placeholder="abc123..." /></label>
+              <button type="submit" class="btn btn-accent">Verify Hardware Attestation</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🧬 PQC Inventory &amp; Hardware Attestation</h3>
+            <p id="pqcSummaryText" class="muted"></p>
+            <div class="table-wrap"><table id="pqcTable"></table></div>
+            <h4 style="margin-top:16px;">Hardware Firmware Attestations</h4>
+            <div class="table-wrap"><table id="hwTable"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20. Phase 7: Adaptive Defense Posture Engine -->
+      <div class="tab-panel" id="tab-adaptive">
+        <div class="card">
+          <div class="row-between">
+            <h3>🛡️ Phase 7: Adaptive Defense Posture (Human-Governed Advisory)</h3>
+            <button id="evalAdaptiveBtn" class="btn btn-accent">Evaluate Adaptive Posture Now</button>
+          </div>
+          <p class="muted">Calculates recommended DEFCON posture from live audit, hardware, SOC, CERT-In, and PQC telemetry. Never executes autonomous changes without human approval.</p>
+          <pre id="adaptiveBox" class="code-box">Click "Evaluate Adaptive Posture Now" to compute live posture recommendations.</pre>
+        </div>
+      </div>
+
+      <!-- 21. Phase 8: Global 2070 Research Collaboration Hub -->
+      <div class="tab-panel" id="tab-research">
+        <div class="split">
+          <div class="card">
+            <h3>🔭 Submit 2070 Security Research Proposal</h3>
+            <form id="researchForm" class="form">
+              <label>Research Title <input name="title" required placeholder="Hybrid ML-KEM + Classical TLS in Low-RAM IoT" /></label>
+              <label>Domain <input name="domain" value="Post-Quantum Cryptography" required /></label>
+              <label>Maturity Stage (Honest Labeling)
+                <select name="maturity_stage">
+                  <option value="hypothesis">Research Hypothesis</option>
+                  <option value="prototype">Working Prototype</option>
+                  <option value="peer_reviewed">Peer Reviewed</option>
+                  <option value="production_standard">Production Standard</option>
+                </select>
+              </label>
+              <label>Summary <textarea name="summary" rows="3" required placeholder="Describe hypothesis, measurable evaluation criteria, and limitations..."></textarea></label>
+              <button type="submit" class="btn btn-primary">Register with Provenance Hash</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>🌐 Registered 2070 Research Proposals</h3>
+            <div class="table-wrap"><table id="researchTable"></table></div>
+          </div>
         </div>
       </div>
     </section>
